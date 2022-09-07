@@ -57,4 +57,15 @@ public class PostModel {
     public void setComments(List<CommentModel> comments) {
         this.comments = comments;
     }
+
+    @Override
+    public String toString() {
+        return "PostModel{" +
+                "id='" + id + '\'' +
+                ", postId='" + postId + '\'' +
+                ", author='" + author + '\'' +
+                ", title='" + title + '\'' +
+                ", comments=" + comments +
+                '}';
+    }
 }
