@@ -1,37 +1,35 @@
 package com.posada.santiago.gamapostsandcomments.application.bus;
 
-
-
-import com.posada.santiago.gamapostsandcomments.application.handlers.QueueHandler;
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.TopicExchange;
+import com.google.gson.Gson;
+import com.posada.santiago.gamapostsandcomments.application.bus.models.CommentModel;
+import com.posada.santiago.gamapostsandcomments.application.bus.models.PostModel;
+import com.posada.santiago.gamapostsandcomments.application.controller.SocketController;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 @Component
 public class RabbitMqConsumer {
 
-    public static final String EXCHANGE = "core-posts";
+    private final Gson gson = new Gson();
+    private final SocketController controller;
+
     public static final String PROXY_QUEUE_POST_CREATED = "events.proxy.post.created";
     public static final String PROXY_QUEUE_COMMENT_ADDED = "events.proxy.comment.added";
 
-    @Autowired
-    private QueueHandler handler;
+    public RabbitMqConsumer(SocketController controller) {
+        this.controller = controller;
+    }
 
     @RabbitListener(queues = PROXY_QUEUE_POST_CREATED)
-    public void listenToPostCreatedQueue(String received){
-
-        handler.acceptPostCreatedMessage(received);
+    public void listenToPostCratedQueue(String message) {
+        PostModel post = gson.fromJson(message, PostModel.class);
+        controller.sendPostCreated("mainSpace", post);
     }
 
     @RabbitListener(queues = PROXY_QUEUE_COMMENT_ADDED)
-    public void listenToCommentAddedQueue(String received){
-
-        handler.acceptCommentAddedMessage(received);
+    public void listenToCommentAddedQueue(String message) {
+        CommentModel comment = gson.fromJson(message, CommentModel.class);
+        controller.sendCommentAdded(comment.getPostId(), comment);
     }
 
 }
